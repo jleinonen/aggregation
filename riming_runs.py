@@ -81,7 +81,7 @@ def generate_rimed_aggregate(*args, **kwargs):
 
 def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
     riming_lwp=0.0, riming_eff=1.0, riming_mode="simultaneous", 
-    rime_pen_depth=120e-6, seed=None, debug=False):
+    rime_pen_depth=120e-6, seed=None, lwp_div=10, debug=False):
 
     random.seed(seed)
 
@@ -124,14 +124,15 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
             for a in agg:                
                 generate_rime(a, align_rot if align else uniform_rot,
                     riming_lwp/float(N-1), riming_eff=riming_eff, 
-                    pen_depth=rime_pen_depth)
+                    pen_depth=rime_pen_depth, lwp_div=lwp_div)
 
         if len(agg) > 1:
             yield agg
 
     if (riming_mode == "subsequent") or (N==1):
         for a in generate_rime(agg[0], align_rot if align else uniform_rot, 
-            riming_lwp, riming_eff=riming_eff, pen_depth=rime_pen_depth, iter=True):
+            riming_lwp, riming_eff=riming_eff, pen_depth=rime_pen_depth, 
+            lwp_div=lwp_div, iter=True):
 
             yield [a]
 
