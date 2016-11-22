@@ -161,7 +161,7 @@ def gen_monomer(psd="monodisperse", size=1.0, min_size=1e-3, max_size=10,
         elif mono_type=="bullet":
             cry = crystal.Bullet(D)
         elif mono_type=="spheroid":
-            cry = crystal.Spheroid(D,0.6)
+            cry = crystal.Spheroid(D,1.0)
         return cry
                 
     rot = rotator.UniformRotator()            

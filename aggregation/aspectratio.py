@@ -7,7 +7,7 @@ def aspect_ratio():
     with open("../aggregation/dendrite_grid.dat") as f: 
         grid = pickle.load(f)
     rot = rotator.UniformRotator()
-    grid_res = 5.0e-6
+    grid_res = 40.0e-6
 
     def ar(D):
         cry = crystal.Dendrite(D, hex_grid=grid)
