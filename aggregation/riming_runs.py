@@ -160,6 +160,8 @@ def gen_monomer(psd="monodisperse", size=1.0, min_size=1e-3, max_size=10,
             cry = crystal.Rosette(D)
         elif mono_type=="bullet":
             cry = crystal.Bullet(D)
+        elif mono_type=="column":
+            cry = crystal.Column(D)
         elif mono_type=="spheroid":
             cry = crystal.Spheroid(D,1.0)
         return cry

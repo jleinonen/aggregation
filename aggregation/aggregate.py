@@ -3,7 +3,7 @@ import numpy as np
 from numpy import random
 from scipy import linalg, stats
 import generator
-from index2D import Index2D
+from index import Index2D
 from matplotlib import pyplot, colors
 import math
 
@@ -117,7 +117,7 @@ class Aggregate(object):
                 else:
                    break
     
-            elem_index = Index2D(elem_size=grid_res)            
+            elem_index = Index2D(elem_size=grid_res)
             elem_index.insert(overlapping_X[:,:2],overlapping_X)
             
             # candidates from the connecting particle
@@ -243,6 +243,30 @@ class Aggregate(object):
         return np.array(sorted(lu, cmp=comp))
 
 
+    def add_elements(self, added_elements, ident=0, update=True):
+        self.X = np.vstack((self.X, added_elements))
+        self.ident = np.hstack((self.ident, 
+            np.full(added_elements.shape[0], ident, dtype=np.int32)))
+        if update:
+            self.update_coordinates()
+
+
+    def remove_elements(self, removed_elements, tolerance=0.001, update=True):
+        keep = np.ones(self.X.shape[0], dtype=bool)
+        for re in removed_elements:
+            dist_sqr = ((self.X-re)**2).sum(1)
+            min_dist = dist_sqr.argmin()
+            keep[dist_sqr < (self.grid_res**2 * tolerance)] = False
+        self.X = self.X[keep,:]
+        self.ident = self.ident[keep]
+        if update:
+            self.update_coordinates()
+
+
+    def update_coordinates(self):
+        self.X -= self.X.mean(0)
+        self.update_extent()
+
 
 def spheres_overlap(X0, X1, r_sqr):
     return (X1[0]-X0[0])**2 + (X1[1]-X0[1])**2 + \
@@ -250,6 +274,7 @@ def spheres_overlap(X0, X1, r_sqr):
 
 
 class RimedAggregate(Aggregate):
+    RIME_IDENT = 0
 
     def add_rime_particles(self, N=1, pen_depth=120e-6):
 
@@ -344,12 +369,7 @@ class RimedAggregate(Aggregate):
                             elem_index.insert([[xs, ys]], [[xs, ys, zc]])
                         break
 
-        self.X = np.vstack((self.X, added_particles))
-        self.ident = np.hstack((self.ident, 
-            -np.ones(added_particles.shape[0], dtype=np.int32)))
-        self.X -= self.X.mean(0)
-        self.update_extent()
-
+        self.add_elements(added_particles)
 
          
          

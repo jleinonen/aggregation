@@ -225,3 +225,16 @@ class Needle(Column):
     def a_from_L(self, L):
         return 3.527e-2 * (L*1e2)**0.437 / 2.0 * 1e-2 
 
+
+def crystal_by_temperature(tem):
+    tem_C = tem-273.15
+    if tem_C > -3:
+        return Dendrite
+    elif tem_C > -10:
+        return Needle
+    elif tem_C > -22:
+        return Dendrite
+    else:
+        return Column
+
+
