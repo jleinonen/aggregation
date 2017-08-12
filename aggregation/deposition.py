@@ -2,7 +2,7 @@ import numpy as np
 import mcs
 from index import Index3D
 
-DEPOSITION_IDENT = 0
+DEPOSITION_IDENT = -2
 
 def grow_ice(agg, ice_vol, outer_rad_norm=2., move_norm=1.):
     elem_index = Index3D(elem_size=agg.grid_res)
@@ -40,7 +40,7 @@ def grow_ice(agg, ice_vol, outer_rad_norm=2., move_norm=1.):
                 p0 = p
             else:
                 p1 = p
-        agg.add_elements(p[None,:], ident=-2, update=False)
+        agg.add_elements(p[None,:], ident=DEPOSITION_IDENT, update=False)
         return p
     
     n_added = 0

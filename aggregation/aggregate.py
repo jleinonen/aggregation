@@ -28,8 +28,7 @@ class Aggregate(object):
         self._generator = generator
         self.grid_res = generator.grid_res            
         self.X = self._generator.generate().T
-        self.ident = np.empty(self.X.shape[0], dtype=np.uint32)
-        self.ident.fill(ident)
+        self.ident = np.full(self.X.shape[0], ident, dtype=np.int32)        
         self.update_extent()
 
 
@@ -37,8 +36,11 @@ class Aggregate(object):
         x = self.X[:,0]
         y = self.X[:,1]
         z = self.X[:,2]
-        self.extent = [[x.min(), x.max()], [y.min(), y.max()], 
-            [z.min(), z.max()]]
+        if len(x) != 0:
+            self.extent = [[x.min(), x.max()], [y.min(), y.max()], 
+                [z.min(), z.max()]]
+        else:
+            self.extent = [[0.,0.],[0.,0.],[0.,0.]]
 
 
     def vertical_projected_area(self):
