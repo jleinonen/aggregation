@@ -43,17 +43,60 @@ class Aggregate(object):
             self.extent = [[0.,0.],[0.,0.],[0.,0.]]
 
 
-    def vertical_projected_area(self):
+    def project_on_dim(self, dim=2):
         ext = self.extent
-        x = (self.X[:,0]-ext[0][0]) / self.grid_res
-        y = (self.X[:,1]-ext[1][0]) / self.grid_res
-        x_max = int(round(x.max()))
-        y_max = int(round(y.max()))
+        if dim == 0:
+            xp = (self.X[:,1]-ext[1][0]) / self.grid_res
+            yp = (self.X[:,2]-ext[2][0]) / self.grid_res
+        elif dim == 1:
+            xp = (self.X[:,0]-ext[0][0]) / self.grid_res
+            yp = (self.X[:,2]-ext[2][0]) / self.grid_res
+        elif dim == 2:
+            xp = (self.X[:,0]-ext[0][0]) / self.grid_res
+            yp = (self.X[:,1]-ext[1][0]) / self.grid_res
+        else:
+            raise AttributeError("Argument dim must be 0<=dim<=2.")
+
+        x_max = int(round(xp.max()))
+        y_max = int(round(yp.max()))
 
         proj_grid = np.zeros((x_max+1,y_max+1), dtype=np.uint8)
-        proj_grid[x.round().astype(int), y.round().astype(int)] = 1
+        proj_grid[xp.round().astype(int), yp.round().astype(int)] = 1
 
+        return proj_grid
+
+
+    def projected_area(self, dim=2):
+        proj_grid = self.project_on_dim(dim=dim)
         return proj_grid.sum() * self.grid_res**2
+
+
+    def vertical_projected_area(self):
+        # Deprecated, for backward compatibility
+        return self.projected_area(dim=2)
+
+
+    def projected_aspect_ratio(self, dim=2):
+        proj_grid = self.project_on_dim(dim=dim)
+
+        x_proj = proj_grid.any(axis=0)
+        y_proj = proj_grid.any(axis=1)
+        x0 = np.arange(len(x_proj))[x_proj][0]
+        x1 = np.arange(len(x_proj))[x_proj][-1]
+        y0 = np.arange(len(y_proj))[y_proj][0]
+        y1 = np.arange(len(y_proj))[y_proj][-1]
+        return float(y1-y0+1)/float(x1-x0+1)
+
+
+    def principal_axes(self):
+        cov = self.X.T.dot(self.X)/self.X.shape[0]
+        try:
+            (l,v) = np.linalg.eigh(cov)
+        except np.linalg.LinAlgError:
+            # In case the eigenvalue computation failed (e.g. singular cov)
+            v = np.zeros((3,3))
+            l = np.zeros(3)
+        return (v*np.sqrt(l))[:,::-1].T # return in descending order on rows
 
                   
     def add_particle(self, particle=None, ident=None, required=False, pen_depth=0.0):
@@ -224,10 +267,10 @@ class Aggregate(object):
         (unique_X, duplicate_X) = unique(Xc)
         
         lu = set([tuple(p) for p in unique_X])
-        ld = set([tuple(p) for p in duplicate_X])
+        ld = (tuple(p) for p in duplicate_X)
         for d in ld:
             search_rad = 1
-            site_found = False
+            site_found = False            
             while not site_found:
                 vacant = []
                 for dx in xrange(-search_rad, search_rad+1):
@@ -237,10 +280,12 @@ class Aggregate(object):
                             if c not in lu:
                                 vacant.append(c)
                 if vacant:
-                    lu.add(vacant[random.randint(len(vacant))])
+                    lu.add(vacant[random.randint(0,len(vacant))])
                     site_found = True
                 else:
                     search_rad += 1
+
+        print len(lu)
 
         return np.array(sorted(lu, cmp=comp))
 
