@@ -2,11 +2,26 @@ import numpy as np
 import mcs
 
 
-g = 9.81
-rho_i = 917.6
+g = 9.81 # gravitational acceleration [m/s^2]
+rho_i = 917.6 # density of ice [kg/m^3]
 
 
 def fall_velocity(agg, T=273.15, P=1000e2, method="HW"):
+    """The fall velocity of an aggregate.
+
+    Args:
+        agg: An Aggregate object.
+        T: Ambient temperature [K].
+        P: Ambient pressure [Pa].
+        method: The method used to compute the fall velocity.
+            If "HW", use the method from Heymsfield and Westbrook (2010),
+            https://doi.org/10.1175/2010JAS3379.1
+            If "KC", use the method from Khvorostyanov and Curry (2005),
+            https://doi.org/10.1175/JAS3622.1
+
+    Returns:
+        The fall velocity [m/s]
+    """
     area = agg.vertical_projected_area()
     D_max = mcs.minimum_covering_sphere(agg.X)[1]*2
     mass = rho_i * agg.X.shape[0] * agg.grid_res**3
@@ -14,9 +29,16 @@ def fall_velocity(agg, T=273.15, P=1000e2, method="HW"):
         return fall_velocity_HW2(area, mass, D_max, T, P)
     elif method=="KC":
         return fall_velocity_KC(area, mass, D_max, T, P)
+    else:
+        raise ValueError("Unknown fall velocity method.")
 
 
 def fall_velocity_HW(area, mass, D_max, T, P):
+    """Alternative method for the Heymsfield-Westbrook fall velocity.
+
+    See fall_velocity_HW2 for an explanation of the arguments.
+    """
+
     k = 0.5 # defined in the paper
     delta_0 = 8.0
     C_0 = 0.35
@@ -34,6 +56,18 @@ def fall_velocity_HW(area, mass, D_max, T, P):
 
 
 def fall_velocity_HW2(area, mass, D_max, T, P):
+    """The Heymsfield-Westbrook fall velocity.
+
+    Args:
+        area: Projected area [m^2].
+        mass: Particle mass [kg].
+        D_max: Particle maximum dimension [m].
+        T: Ambient temperature [K].
+        P: Ambient pressure [Pa].
+
+    Returns:
+        The fall velocity [m/s].
+    """
     do_i = 8.0
     co_i = 0.35
 
@@ -55,6 +89,18 @@ def fall_velocity_HW2(area, mass, D_max, T, P):
 
 
 def fall_velocity_KC(area, mass, D_max, T, P):
+    """The Khvorostyanov-Curry fall velocity.
+
+    Args:
+        area: Projected area [m^2].
+        mass: Particle mass [kg].
+        D_max: Particle maximum dimension [m].
+        T: Ambient temperature [K].
+        P: Ambient pressure [Pa].
+
+    Returns:
+        The fall velocity [m/s].
+    """
     C0 = 0.6 # p. 4348
     delta0 = 5.83 # p. 4348
     C1 = 4.0/(delta0**2 * np.sqrt(C0)) # appendix
@@ -87,12 +133,29 @@ def fall_velocity_KC(area, mass, D_max, T, P):
     
 
 def air_kinematic_viscosity(T, P):
+    """The kinematic viscosity of air.
+
+    Args:
+        T: Ambient temperature [K].
+        P: Ambient pressure [Pa].
+
+    Returns:
+        The kinematic viscosity [m^2/s].
+    """
     rho = air_density(T, P)
     mu = air_dynamic_viscosity(T)
     return mu/rho
 
 
 def air_dynamic_viscosity(T):
+    """The kinematic viscosity of air.
+
+    Args:
+        T: Ambient temperature [K].
+
+    Returns:
+        The kinematic viscosity [Pa/s].
+    """
     mu0 = 1.716e-5
     T0 = 273.15
     C = 111.0
@@ -100,6 +163,14 @@ def air_dynamic_viscosity(T):
 
 
 def air_density(T, P):
-    R = 28704e-2
-    return P / (T*R)
+    """The density of air.
 
+    Args:
+        T: Ambient temperature [K].
+        P: Ambient pressure [Pa].
+
+    Returns:
+        The kinematic viscosity [Pa/s].
+    """
+    R = 28704e-2 # gas constant for air
+    return P / (T*R)

@@ -5,6 +5,22 @@ from index import Index3D
 DEPOSITION_IDENT = -2
 
 def grow_ice(agg, ice_vol, outer_rad_norm=2., move_norm=1.):
+    """Deposition growth or sublimation on an aggregate.
+
+    Simulates deposition growth with a simple Monte Carlo scheme. This
+    is quite simplistic and doesn't currently account for 
+
+    Args:
+        agg: The Aggregate object.
+        ice_vol: The volume of ice to be added [m^3]. This can be negative,
+            in which case sublimation rather than deposition is simulated.
+        outer_rad_norm: Limiting distance for the diffusion scheme as a 
+            multiple of the particle radius (default 2).
+        move_norm: The size scale of the diffusion process as a multiple of
+            the aggregate volume element size.
+    """
+
+
     elem_index = Index3D(elem_size=agg.grid_res)
     elem_index.insert(agg.X)
 

@@ -1,13 +1,8 @@
 from itertools import izip as zip
 import numpy as np
 import math
-#minimum covering sphere
-#based on www.mel.nist.gov/msidlibrary/doc/hopp95.pdf
-#minimum covering sphere candidate (mcsc)
-#given candidate_points find minimum covering sphere
-#find coordinates of point(candidate center) that is equidistant from candidate points
-#if a coordinate is negative, point(candidate center) is outside of simplex,
-#and the candidate point with the smallest value is removed
+
+
 
 def mcsc(points, candidate_indices):
     candidate_count = len(candidate_indices)
@@ -103,13 +98,15 @@ def mcsc(points, candidate_indices):
         
     return (candidate_center, candidate_indices)
 
-#reduce covering sphere along line p*(t - center)
-#new candidates have p values between 0 exclusive and 1 exclusive
-#candidate with smallest value is chosen for next covering sphere
-#if minimum_covering sphere_candidate returns 4 points then minimum found
-#if no new candidate points are found then minimum is found
-#if new_center == center minimum is found
+
 def find_next_candidate(points, center, candidate_indices):
+    """Reduce covering sphere along line p*(t - center)
+    New candidates have p values between 0 exclusive and 1 exclusive
+    Candidate with smallest value is chosen for next covering sphere
+    If minimum_covering sphere_candidate returns 4 points then minimum found
+    If no new candidate points are found then minimum is found
+    If new_center == center minimum is found
+    """
     t = 0.0
     (t, candidate_indices) = mcsc(points, candidate_indices)
     if len(candidate_indices) == 4:
@@ -131,27 +128,9 @@ def find_next_candidate(points, center, candidate_indices):
         pn[d_pos] = pp
         p[non_candidate_indices] = pn   
     
-    """    
-    for (index, point) in zip(non_candidate_indices, non_candidate_points):        
-        d = np.dot(t - center, p0 - point)
-        
-        if d > 0:
-            p[index] = ((p0 + point)/2.0 - center).dot((p0 - point)/d)
-            if index==0: print p[index]
-    """
-
     minimum = p[p>0].min()
     min_index = np.where(p==minimum)[0][-1]
 
-    """
-    minimum = 1
-    min_index = None    
-    for (index, number) in enumerate(p):
-        if 0 < number < minimum:
-            min_index = index
-            minimum = number
-    """
- 
     if minimum == 1:
         return (True, t, candidate_indices)
  
@@ -165,14 +144,18 @@ def find_next_candidate(points, center, candidate_indices):
     return (False, new_center, candidate_indices)
 
 
-#given set of points defined by mathutils.Vectors,
-#return center and radius of minimum covering sphere
-#define starting center as first point in points
-#define p_1 as point farthest away from center
-#first set of candidate points contains only p_1
-#run until no new candidate points are found or until
-#four candidate points are found that lie on minimum covering sphere
 def minimum_covering_sphere(points):
+    """Minimum covering sphere.
+
+    Based on http://www.mel.nist.gov/msidlibrary/doc/hopp95.pdf
+
+    Args:
+        points: (N,3) array of points.
+
+    Returns:
+        A tuple (center, radius) where center is a (3,) array with the
+        coordinates of the center of the 
+    """
     points = np.asarray(points).astype(np.float64)
     point_0 = points[0,:]
     new_center = point_0

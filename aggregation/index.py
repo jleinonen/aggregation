@@ -3,12 +3,30 @@ import numpy as np
 
 
 class Index2D(object):
+    """Index objects by their 2D coordinates.
+
+    This class can be used for fast spatial searching from a coordinate 
+    dataset.
+
+    Constructor args:
+        elem_size: Spacing of the 2D grid used for indexing.
+    """
+
     def __init__(self, elem_size=1):
         self._elem_size = float(elem_size)
-        self._grid = {}
+        self._grid = {} # this holds the index
         
         
     def insert(self, coordinates, objects=None):
+        """Insert objects into the spatial index.
+
+        Args:
+            coordinates: A (N,2) array with the spatial coordinates of the
+                objects.
+            objects: An iterator is N indexed objects. If None (default), the 
+                (2,) coordinate arrays themselves are indexed.
+        """
+
         if objects is None:
             objects = coordinates
         X = np.array(coordinates)/self._elem_size
@@ -28,7 +46,17 @@ class Index2D(object):
 
         
     def items_near(self, p, search_rad=1):
-        """Return all indexed items within search_rad from p
+        """Return all indexed items within a given distance from a point.
+
+        Some items that are further than search_rad from p may also be
+        returned.
+
+        Args:
+            p: The reference point.
+            search_rad: The search radius.
+
+        Returns:
+            An iterator containing the indexed items near p.
         """
         
         p = np.array(p)/self._elem_size        
@@ -48,15 +76,37 @@ class Index2D(object):
 
 
 class Index3D(object):
+    """Index 3D coordinates.
+
+    This class can be used for fast spatial searching from a coordinate 
+    dataset.
+
+    Constructor args:
+        elem_size: Spacing of the 3D grid used for indexing.
+    """
+
     def __init__(self, elem_size=1):
         self._elem_size = float(elem_size)
         self._grid = {}
 
+
     def size(self):
+        """The size of the index.
+
+        Returns:
+            The total number of indexed coordinates.
+        """
         return sum(len(self._grid[c]) for c in self._grid)
         
         
     def insert(self, coordinates):
+        """Insert coordinates into the spatial index.
+
+        Args:
+            coordinates: A (N,3) array with the spatial coordinates to
+                be indexed.
+        """
+
         X = np.array(coordinates)/self._elem_size
         X_i = X.astype(np.int32)
         for ((x,y,z),(x_i,y_i,z_i)) in izip(X,X_i):
@@ -67,6 +117,13 @@ class Index3D(object):
 
 
     def remove(self, coordinates):
+        """Remove coordinates the spatial index.
+
+        Args:
+            coordinates: A (N,3) array with the spatial coordinates to be
+                removed from the index.
+        """
+
         X = np.array(coordinates)/self._elem_size
         X_i = X.astype(np.int32)
         for ((x,y,z),(x_i,y_i,z_i)) in izip(X,X_i):
@@ -90,7 +147,17 @@ class Index3D(object):
 
         
     def items_near(self, p, search_rad=1):
-        """Return all indexed items within search_rad from p
+        """Return all indexed items within a given distance from a point.
+
+        Some items that are further than search_rad from p may also be
+        returned.
+
+        Args:
+            p: The reference point.
+            search_rad: The search radius.
+
+        Returns:
+            An iterator containing the indexed items near p.
         """
         
         p = np.array(p)/self._elem_size        

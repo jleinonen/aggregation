@@ -3,7 +3,14 @@ from numpy import array, random, pi
 from scipy.integrate import cumtrapz
 from scipy.interpolate import splrep, splev
 
+
 class Rotator(object):
+    """Rotator object.
+
+    A Rotator instance is used to rotate a set of 3D coordinates around
+    the [0,0,0] point. All Rotator subclasses must implement the "rotate"
+    member function.
+    """
 
     @staticmethod
     def rotation_matrix(alpha, beta, psi):
@@ -31,11 +38,24 @@ class Rotator(object):
         pass
 
     def rotate(X):
+        """Rotate the coordinates around the [0,0,0] point.
+
+        Args:
+            The (N,3) array of coordinates.
+        """
         return X
 
 
 class UniformRotator(Rotator):
+    """Uniformly random rotation.
+    """
+
     def rotate(self,X):
+        """Rotate the coordinates around the [0,0,0] point.
+
+        Args:
+            The (N,3) array of coordinates.
+        """
         alpha = random.rand() * 2*pi
 
         beta = np.arccos(1.0-2*random.rand())
@@ -46,13 +66,30 @@ class UniformRotator(Rotator):
 
 
 class HorizontalRotator(Rotator):
+    """Uniformly random rotation around the z axis only.
+    """
+
     def rotate(self,X):
+        """Rotate the coordinates around the [0,0,0] point.
+
+        Args:
+            The (N,3) array of coordinates.
+        """
         alpha = random.rand() * 2*pi
         R = Rotator.rotation_matrix(alpha,0.0,0.0)
         return np.dot(R,X)
     
     
 class SamplePDF(object):
+    """Generate samples from a PDF given by a function.
+
+    Constructor args:
+        pdf: Function giving the PDF.
+        a,b: Start and end of the interval at which the function is defined.
+        num_points: Number of points used in the numerical evaluation of the
+            function.
+    """
+
     def __init__(self, pdf, a, b, num_points=1024):
         x = np.linspace(a, b, num_points)        
         y = pdf(x)
@@ -64,11 +101,27 @@ class SamplePDF(object):
         return self.rvs()
         
     def rvs(self):
+        """Samples from the PDF.
+
+        Returns:
+            A random sample from the specified PDF.
+        """
         return splev(random.rand(), self.interp, der=0)
         
         
 
 class PartialAligningRotator(Rotator):
+    """Rotation into a Gaussian-weighted random orientation.
+
+    This rotates the coordinates using a uniform PDF around the z axis and
+    using a Gaussian-weighted canting angle for the tilt from the z axis.
+    This can be used together with the Aggregate.align function to produce
+    partially horizontally aligned aggregates.
+
+    Constructor args:
+        exp_sig_deg: The standard deviation of the canting angle, in degrees.
+    """
+
     def __init__(self, exp_sig_deg=40, random_flip=False):
         self.exp_sig = exp_sig_deg * pi/180
         self.beta_sample = SamplePDF(
@@ -76,6 +129,11 @@ class PartialAligningRotator(Rotator):
         self.random_flip = random_flip
     
     def rotate(self,X):
+        """Rotate the coordinates around the [0,0,0] point.
+
+        Args:
+            The (N,3) array of coordinates.
+        """
         alpha = random.rand() * 2*pi
         beta = self.beta_sample()
         R = Rotator.rotation_matrix(alpha,beta,0.0)
