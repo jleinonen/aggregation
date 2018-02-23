@@ -65,23 +65,23 @@ def generate_dendrite(alpha, beta, gamma, grid_size=1000, num_iter=10000):
                             
    
     while it < num_iter:
-          ice = (grid >= 1.0)
-          receptive = (ndimage.convolve(ice,neighbor_k_even,mode='constant') > 0.0)
-          receptive[odd,:] = (ndimage.convolve(ice,neighbor_k_odd,mode='constant')[odd,:] > 0.0)
-           
-          nonrecp = grid.copy()
-          nonrecp[receptive] = 0.0
-          nonrecp_even = ndimage.convolve(nonrecp,nonrecp_avg_k_even,mode='constant')
-          nonrecp_odd = ndimage.convolve(nonrecp,nonrecp_avg_k_odd,mode='constant')
-          nonrecp[even,:] = nonrecp_even[even,:]
-          nonrecp[odd,:] = nonrecp_odd[odd,:]      
-          
-          grid[~receptive] = 0.0
-          grid[grid != 0.0] += gamma
-          grid += nonrecp
-          
-          grid[boundary_mask] = beta
-          
-          it += 1
+        ice = (grid >= 1.0)
+        receptive = (ndimage.convolve(ice,neighbor_k_even,mode='constant') > 0.0)
+        receptive[odd,:] = (ndimage.convolve(ice,neighbor_k_odd,mode='constant')[odd,:] > 0.0)
+         
+        nonrecp = grid.copy()
+        nonrecp[receptive] = 0.0
+        nonrecp_even = ndimage.convolve(nonrecp,nonrecp_avg_k_even,mode='constant')
+        nonrecp_odd = ndimage.convolve(nonrecp,nonrecp_avg_k_odd,mode='constant')
+        nonrecp[even,:] = nonrecp_even[even,:]
+        nonrecp[odd,:] = nonrecp_odd[odd,:]      
+        
+        grid[~receptive] = 0.0
+        grid[grid != 0.0] += gamma
+        grid += nonrecp
+        
+        grid[boundary_mask] = beta
+        
+        it += 1
       
-   return grid
+    return grid

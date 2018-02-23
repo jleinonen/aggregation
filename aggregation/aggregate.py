@@ -206,13 +206,15 @@ class Aggregate(object):
         """
 
         cov = self.X.T.dot(self.X)/self.X.shape[0]
+        # account for element size (this also regularizes the matrix)
+        cov += np.diag(np.full(3,self.grid_res**2/12.))
         try:
             (l,v) = np.linalg.eigh(cov)
         except np.linalg.LinAlgError:
             # In case the eigenvalue computation failed (e.g. singular cov)
             v = np.zeros((3,3))
             l = np.zeros(3)
-        return (v*np.sqrt(l))[:,::-1].T # return in descending order on rows
+        return (v*np.sqrt(l))[:,::-1] # return in descending order
 
                   
     def add_particle(self, particle=None, ident=None, required=False, 
@@ -341,7 +343,7 @@ class Aggregate(object):
 
         # get and normalize principal axes
         PA = self.principal_axes()
-        PA /= np.sqrt((PA**2).sum(0))        
+        PA /= np.sqrt((PA**2).sum(0))
         
         # project to principal axes
         self.X = np.dot(self.X,PA)
@@ -529,7 +531,7 @@ class RimedAggregate(Aggregate):
 
     RIME_IDENT = 0
 
-    def add_rime_particles(self, N=1, pen_depth=120e-6):
+    def add_rime_particles(self, N=1, pen_depth=120e-6, compact_dist=0.):
         """Add rime particles to the aggregate.
         
         Args:
@@ -552,16 +554,16 @@ class RimedAggregate(Aggregate):
         if use_indexing:
             elem_index = Index2D(elem_size=grid_res)            
             elem_index.insert(self.X[:,:2],self.X)
-            def find_overlapping(x,y):
-                p_near = np.array(list(elem_index.items_near((x,y), grid_res)))
+            def find_overlapping(x,y,dist_mul=1):
+                p_near = np.array(list(elem_index.items_near((x,y), grid_res*dist_mul)))
                 if not p_near.shape[0]:
                     return p_near
-                p_filter = ((p_near[:,:2]-[x,y])**2).sum(1) < grid_res_sqr
+                p_filter = ((p_near[:,:2]-[x,y])**2).sum(1) < grid_res_sqr*dist_mul**2
                 return p_near[p_filter,:]
         else:
-            def find_overlapping(x,y):
+            def find_overlapping(x,y,dist_mul=1):
                 X_filter = ((self.X[:,:2] - 
-                    np.array([x,y]))**2).sum(1) < grid_res_sqr
+                    np.array([x,y]))**2).sum(1) < grid_res_sqr*dist_mul**2
                 return self.X[X_filter,:]
 
         added_particles = np.empty((N, 3))
@@ -617,6 +619,17 @@ class RimedAggregate(Aggregate):
 
                     if not overlap:
                         # this means we found a suitable site, so add the particle
+
+                        # run the compacting first
+                        if compact_dist > 0:
+                            X = np.array([xs, ys, zc])
+                            # locate nearby particles to use for the compacting
+                            X_near = find_overlapping(xs, ys, dist_mul=2)
+                            r_sqr = ((X_near-X)**2).sum(axis=1)
+                            X_near = X_near[r_sqr<(2*self.grid_res)**2,:]
+                            (xs, ys, zc) = self.compact_rime(X, X_near, 
+                                max_dist=compact_dist)
+
                         added_particles[particle_num,:] = [xs, ys, zc]
                         site_found = True
                         self.extent[0][0] = min(self.extent[0][0], xs)
@@ -631,7 +644,38 @@ class RimedAggregate(Aggregate):
 
         self.add_elements(added_particles)
 
-         
+
+    def compact_rime(self, X, X_near, max_dist=0., min_move=0.01, dr=0.1,
+        max_iters=100):
+
+        if max_dist <= 0.:
+            return X
+
+        X_old = X.copy()
+        max_dist_sqr = (max_dist*self.grid_res)**2
+        min_move_sqr = (min_move*self.grid_res)**2
+        for it in xrange(max_iters):
+            dX = X_near-X
+            r_sqr = (dX**2).sum(axis=1)
+            r_sqr_norm = r_sqr / self.grid_res**2
+            nearest_ind = r_sqr.argsort()
+            F = np.zeros(3)
+            for i in nearest_ind:
+                Fi = dX[i,:]/(np.sqrt(r_sqr[i])*r_sqr_norm[i])
+                if r_sqr_norm[i] > 1:
+                    F += Fi
+                else:
+                    F-= Fi
+            F *= dr * self.grid_res
+            X_last = X.copy()
+            X += F
+            if ((X-X_old)**2).sum() > max_dist_sqr:
+                break
+            if ((X-X_last)**2).sum() < min_move_sqr:
+                break
+
+        return X
+
          
 class PseudoAggregate(Aggregate):
     """A "pseudo-aggregate" model.

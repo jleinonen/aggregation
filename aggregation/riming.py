@@ -86,7 +86,7 @@ def lwp_from_N(agg, N, area):
 
 
 def generate_rime(agg, rot, riming_lwp, riming_eff=1.0, align=True, 
-    pen_depth=120e-6, lwp_div=10.0, iter=False):
+    pen_depth=120e-6, lwp_div=10.0, compact_dist=0., iter=False):
     """Generate rime on an aggregate.
     
     Args:
@@ -119,7 +119,8 @@ def generate_rime(agg, rot, riming_lwp, riming_eff=1.0, align=True,
             (N_particles, area) = get_N_rime_particles(agg, rot, 
                 min(riming_lwp/lwp_div, remaining_lwp), riming_eff, align=align)
             N_to_add = max(N_particles, 10)
-            agg.add_rime_particles(N=N_to_add, pen_depth=pen_depth)
+            agg.add_rime_particles(N=N_to_add, pen_depth=pen_depth, 
+                compact_dist=compact_dist)
             remaining_lwp -= lwp_from_N(agg, N_to_add, area)
             if align:
                 agg.align()
@@ -186,7 +187,8 @@ def generate_rimed_aggregate(*args, **kwargs):
 
 def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
     riming_lwp=0.0, riming_eff=1.0, riming_mode="simultaneous", 
-    rime_pen_depth=120e-6, seed=None, lwp_div=10, debug=False):
+    rime_pen_depth=120e-6, seed=None, lwp_div=10, compact_dist=0.,
+    debug=False):
     """Generate a rimed aggregate particle.
 
     Refer to the generate_rimed_aggregate function for details.
@@ -212,7 +214,9 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
         while not collision:
             
             i = random.randint(len(agg))
-            j = random.randint(len(agg))
+            j = i
+            while j == i:
+                j = random.randint(len(agg))
             rnd = random.rand()
             if rnd < p_mat[i][j]:
                 if debug:
@@ -234,7 +238,8 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
             for a in agg:                
                 generate_rime(a, align_rot if align else uniform_rot,
                     riming_lwp/float(N-1), riming_eff=riming_eff, 
-                    pen_depth=rime_pen_depth, lwp_div=lwp_div)
+                    pen_depth=rime_pen_depth, lwp_div=lwp_div,
+                    compact_dist=compact_dist)
 
         if len(agg) > 1:
             yield agg
@@ -242,7 +247,7 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
     if (riming_mode == "subsequent") or (N==1):
         for a in generate_rime(agg[0], align_rot if align else uniform_rot, 
             riming_lwp, riming_eff=riming_eff, pen_depth=rime_pen_depth, 
-            lwp_div=lwp_div, iter=True):
+            lwp_div=lwp_div, iter=True, compact_dist=compact_dist):
 
             yield [a]
 
