@@ -21,7 +21,7 @@ SOFTWARE.
 import numpy as np
 import crystal
 import rotator
-from misc import doc_inherit
+
 
 class Generator(object):
    """Crystal generator.
