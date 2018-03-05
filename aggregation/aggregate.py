@@ -529,7 +529,7 @@ class RimedAggregate(Aggregate):
     base class. See the documentation for Aggregate for more information.
     """
 
-    RIME_IDENT = 0
+    RIME_IDENT = -1
 
     def add_rime_particles(self, N=1, pen_depth=120e-6, compact_dist=0.):
         """Add rime particles to the aggregate.
@@ -642,7 +642,7 @@ class RimedAggregate(Aggregate):
                             elem_index.insert([[xs, ys]], [[xs, ys, zc]])
                         break
 
-        self.add_elements(added_particles)
+        self.add_elements(added_particles, ident=self.RIME_IDENT)
 
 
     def compact_rime(self, X, X_near, max_dist=0., min_move=0.01, dr=0.1,
