@@ -664,15 +664,29 @@ class RimedAggregate(Aggregate):
                 Fi = dX[i,:]/(np.sqrt(r_sqr[i])*r_sqr_norm[i])
                 if r_sqr_norm[i] > 1:
                     F += Fi
+                elif r_sqr_norm[i] < 0.01: #avoid singularity
+                    pass
                 else:
-                    F-= Fi
-            F *= dr * self.grid_res
+                    F -= Fi
+
+            F *= dr
+            # limit abs(F) to at most dr
+            F_abs_sqr = (F**2).sum()
+            if F_abs_sqr > dr**2:
+                F *= dr/np.sqrt(F_abs_sqr)
+            F *= self.grid_res
+
             X_last = X.copy()
             X += F
-            if ((X-X_old)**2).sum() > max_dist_sqr:
+            dist_sqr = ((X-X_old)**2).sum()
+            if dist_sqr/self.grid_res_sqr > max_dist_sqr:
+                # limit distance to at most max_dist
+                X = X_old + (X-X_old)*(max_dist*self.grid_res/np.sqrt(dist_sqr))
                 break
             if ((X-X_last)**2).sum() < min_move_sqr:
                 break
+
+
 
         return X
 
