@@ -679,7 +679,7 @@ class RimedAggregate(Aggregate):
             X_last = X.copy()
             X += F
             dist_sqr = ((X-X_old)**2).sum()
-            if dist_sqr/self.grid_res_sqr > max_dist_sqr:
+            if dist_sqr/self.grid_res**2 > max_dist_sqr:
                 # limit distance to at most max_dist
                 X = X_old + (X-X_old)*(max_dist*self.grid_res/np.sqrt(dist_sqr))
                 break
