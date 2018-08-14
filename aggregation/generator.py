@@ -45,7 +45,7 @@ class MonodisperseGenerator(Generator):
    """Crystal generator for monodisperse particles.
 
    Crystal generators create 3-D volumetric models of ice crystals based
-   on the crystal geometries found in the cystal module.
+   on the crystal geometries found in the crystal module.
 
    Constructor args:
       crystal: A subclass of Crystal found in the "crystal" module.

@@ -418,6 +418,7 @@ class Aggregate(object):
 
         # The rest is to identify elements that would end up in the same
         # location and move them around
+        N = Xc.shape[0]
 
         # Do some sorting magic to generate a list of indices which are
         # already occupied
@@ -449,7 +450,8 @@ class Aggregate(object):
                                     dtype=[('x', float), ('y', float), 
                                         ('z', float)])
                             c_ind = Xc_rec.searchsorted(c)
-                            spot_is_vacant = (Xc_rec[c_ind] == c)[0]
+
+                            spot_is_vacant = (c_ind==N) or (Xc_rec[c_ind] == c)[0]
                             if spot_is_vacant:
                                 vacant.append(np.array(
                                     [c['x'][0],c['y'][0],c['z'][0]]))
