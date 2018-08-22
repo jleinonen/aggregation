@@ -420,49 +420,22 @@ class Aggregate(object):
         # location and move them around
         N = Xc.shape[0]
 
-        # Do some sorting magic to generate a list of indices which are
-        # already occupied
-        Xc_rec = np.rec.fromarrays((Xc[:,0], Xc[:,1], Xc[:,2]), 
-            dtype=[('x', float), ('y', float), ('z', float)])
-        ind = Xc_rec.argsort(order=['x','y','z'])
-        Xc_rec.sort(order=['x','y','z'])
-        Xc_sorted = np.vstack((Xc_rec['x'], Xc_rec['y'], Xc_rec['z'])).T
-        Xc_sorted_diff = abs(np.vstack((
-            np.array([1.0,1.0,1.0]),
-            np.diff(Xc,axis=0)
-        ))).sum(1)
-        taken_filter = (Xc_sorted_diff == 0)
-        # taken_inds now becomes the occupied row indices
-        taken_inds = ind[taken_filter] 
-        
-        # Move each element that is going to an occupied spot into
-        # a nearby vacant spot
-        for i in taken_inds:
-            d = Xc[i,:]
-            search_rad = 1
-            site_found = False
-            while not site_found:
-                vacant = []
-                for dx in xrange(-search_rad, search_rad+1):
-                    for dy in xrange(-search_rad, search_rad+1):
-                        for dz in xrange(-search_rad, search_rad+1):
-                            c = np.array([(d[0]+dx, d[1]+dy, d[2]+dz)],
-                                    dtype=[('x', float), ('y', float), 
-                                        ('z', float)])
-                            c_ind = Xc_rec.searchsorted(c)
+        sort_ind = np.lexsort((Xc[:,2],Xc[:,1],Xc[:,0]))
+        Xc = Xc[sort_ind,:]
+        overlap = abs(np.diff(Xc,axis=0)).sum(1) == 0
+        overlap = np.hstack((overlap, False))
 
-                            spot_is_vacant = (c_ind==N) or (Xc_rec[c_ind] == c)[0]
-                            if spot_is_vacant:
-                                vacant.append(np.array(
-                                    [c['x'][0],c['y'][0],c['z'][0]]))
-                if vacant:
-                    Xc[i,:] = vacant[random.randint(0,len(vacant))]
-                    Xc_rec = np.rec.fromarrays((Xc[:,0], Xc[:,1], Xc[:,2]), 
-                        dtype=[('x', float), ('y', float), ('z', float)])
-                    Xc_rec.sort()
-                    site_found = True
-                else:
-                    search_rad += 1
+        Xc_overlap = Xc[overlap,:].copy()
+        Xc = Xc[~overlap,:]
+        np.random.shuffle(Xc_overlap)
+
+        for i in xrange(Xc_overlap.shape[0]):
+            Xm = Xc_overlap[i,:]
+            for dX in neighbors_by_distance():
+                X = Xm+dX
+                if not row_is_in_sorted_array(X, Xc):
+                    Xc = insert_missing_row_in_sorted_array(X, Xc)
+                    break
 
         return Xc
 
@@ -522,6 +495,75 @@ class Aggregate(object):
 def spheres_overlap(X0, X1, r_sqr):
     return (X1[0]-X0[0])**2 + (X1[1]-X0[1])**2 + \
         (X1[2]-X0[2])**2 < r_sqr
+
+
+def compare_row(x,y):
+    if x[0] > y[0]:
+        return 1
+    elif x[0] < y[0]:
+        return -1
+    elif len(x)>1:
+        return compare_row(x[1:],y[1:])
+    else:
+        return 0
+
+
+def row_is_in_sorted_array(r, x):
+    i0 = 0
+    i1 = x.shape[0]
+    while (i1-i0)>1:
+        i = (i0+i1)//2
+        c = compare_row(r,x[i,:])
+        if c == 0:
+            return True
+        elif c == 1:
+            i0=i
+        else:
+            i1=i
+    return not bool(compare_row(r,x[i0,:]))
+
+
+def insert_missing_row_in_sorted_array(r, x):
+    i0 = 0
+    i1 = x.shape[0]
+    while (i1-i0)>1:
+        i = (i0+i1)//2
+        c = compare_row(r,x[i,:])
+        if c == 1:
+            i0=i
+        else:
+            i1=i
+    if i1 > 1:
+        insert_ind = i1
+    else:
+        insert_ind = 1 if compare_row(r,x[i0,:])==1 else 0
+    
+    return np.vstack((x[:insert_ind,:], r.reshape((1,3)), x[insert_ind:,:]))
+
+
+def outer_layer_of_cube(cube_rad):
+    """Outer layer of cube.
+
+    Generates the coordinates on the outer layer of a cube
+    centered at (0,0,0) with side of (2*cube_rad+1).
+    """
+    irange = list(xrange(-cube_rad, cube_rad+1))
+    for dx in irange:
+        for dy in irange:
+            if (abs(dx)==cube_rad) or (abs(dy)==cube_rad):
+                dz_iter = irange
+            else:
+                dz_iter = (-cube_rad, cube_rad)
+            for dz in dz_iter:
+                yield (dx, dy, dz)
+
+
+def neighbors_by_distance():
+    cube_rad = 1
+    while True:
+        for p in outer_layer_of_cube(cube_rad):
+            yield p
+        cube_rad += 1
 
 
 class RimedAggregate(Aggregate):
