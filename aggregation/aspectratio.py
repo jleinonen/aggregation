@@ -41,7 +41,7 @@ def aspect_ratio():
         size = np.sqrt(l/X_c.shape[0] + (1./(2*np.sqrt(3))*grid_res)**2)
         width = np.sqrt(0.5*(size[1]**2+size[2]**2))
         height = size[0]
-        print D, size, width, height
+        print(D, size, width, height)
         return height/width
 
     ratios = np.array([ar(D) for D in D_arr])

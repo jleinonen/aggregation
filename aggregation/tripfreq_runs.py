@@ -48,7 +48,7 @@ def generate_aggregate(monomer_generator,N=5,align=True):
             j = random.randint(len(agg))
             rnd = random.rand()
             if rnd < p_mat[i][j]:
-                print i, j
+                print(i, j)
                 agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
                 agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
                 agg_btm.rotate(uniform_rot)

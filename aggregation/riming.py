@@ -66,7 +66,7 @@ def get_N_rime_particles(agg, rot, riming_lwp, riming_eff=1.0, align=True,
     vol = riming_lwp * area / rho_w    
     N_particles = int(round(riming_eff*vol/agg.grid_res**3))
     if debug:
-        print riming_lwp, area, vol, N_particles
+        print(riming_lwp, area, vol, N_particles)
     return (N_particles, area)
 
 
@@ -220,7 +220,7 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
             rnd = random.rand()
             if rnd < p_mat[i][j]:
                 if debug:
-                    print i, j
+                    print(i, j)
                 agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
                 agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
                 agg_btm.rotate(uniform_rot)
@@ -312,7 +312,7 @@ def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3,
         
         cry = make_cry(D)
         if debug:
-            print D
+            print(D)
         
         gen = generator.MonodisperseGenerator(cry, rot, grid_res)
         if rimed:

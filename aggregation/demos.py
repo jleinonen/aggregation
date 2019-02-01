@@ -33,7 +33,7 @@ def monodisp_demo(N=5):
    agg = aggregate.Aggregate(gen)
    
    for i in xrange(N-1):   
-      print i
+      print(i)
       agg.add_particle(required=True, pen_depth=0.02e-3)
       agg.align()
       
@@ -65,14 +65,14 @@ def monodisp_demo2(N=5):
          j = random.randint(len(agg))
          rnd = random.rand()
          if rnd < p_mat[i][j]:             
-            print i, j
+            print(i, j)
             agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
             agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
             collision = agg_top.add_particle(particle=agg_btm.X,required=True)
             agg_top.align()
             agg.pop(i if (m_r[i] <= m_r[j]) else j)            
       
-   print aggregate.t_i, aggregate.t_o   
+   print(aggregate.t_i, aggregate.t_o)
    return agg[0]
    
    
