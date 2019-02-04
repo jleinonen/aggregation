@@ -50,7 +50,7 @@ def monodisp_dendrite(N=5,grid=None,align=True):
          j = random.randint(len(agg))
          rnd = random.rand()
          if rnd < p_mat[i][j]:             
-            print i, j
+            print(i, j)
             agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
             agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
             collision = agg_top.add_particle(particle=agg_btm.X,required=False)
@@ -61,7 +61,7 @@ def monodisp_dendrite(N=5,grid=None,align=True):
                   agg_top.rotate(rot)
                agg.pop(i if (m_r[i] <= m_r[j]) else j)            
       
-   print aggregate.t_i, aggregate.t_o   
+   print(aggregate.t_i, aggregate.t_o)
    
    if align:
       agg[0].align()
@@ -107,7 +107,7 @@ def polydisp_dendrite(N=5,grid=None,align=True):
       D = 1e3
       while D > 0.3e-2 or D < 0.2e-3:
          D = psd.rvs()
-      print "D: " + str(D)
+      print("D: " + str(D))
       cry = crystal.Dendrite(D,alpha=0.705,beta=0.5,gamma=0.0001,num_iter=2500,hex_grid=grid)   
       gen = generator.MonodisperseGenerator(cry, rot, 0.02e-3) 
       agg.append(aggregate.Aggregate(gen, levels=5))
@@ -129,7 +129,7 @@ def polydisp_dendrite(N=5,grid=None,align=True):
          j = random.randint(len(agg))
          rnd = random.rand()
          if rnd < p_mat[i][j]:             
-            print i, j
+            print(i, j)
             agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
             agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
             collision = agg_top.add_particle(particle=agg_btm.X,required=True)
@@ -140,7 +140,7 @@ def polydisp_dendrite(N=5,grid=None,align=True):
                   agg_top.rotate(rot)
                agg.pop(i if (m_r[i] <= m_r[j]) else j)            
       
-   print aggregate.t_i, aggregate.t_o   
+   print(aggregate.t_i, aggregate.t_o)
    
    if align:
       agg[0].align()
@@ -185,7 +185,7 @@ def monodisp_pseudo(N=5,grid=None,sig=1.0):
    N_dip = p_agg.grid().shape[0]
    m = 0.02e-3**3 * N_dip * N * rho_i
    sig = (m/20.3)**(1.0/2.35)
-   print N_dip, sig
+   print(N_dip, sig)
    """
    
    p_agg = aggregate.PseudoAggregate(gen, sig=sig)

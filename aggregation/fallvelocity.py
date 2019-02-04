@@ -136,7 +136,7 @@ def fall_velocity_KC(area, mass, D_max, T, P):
 
     h = np.sqrt(1 + C1*X_sqrt)
     b_Re = C1*X_sqrt / (2 * (h-1) * h) # 2.8
-    a_Re = (delta0/4.0) * (h-1)**2 / X**b_Re # 2.7
+    a_Re = (delta0**2/4.0) * (h-1)**2 / X**b_Re # 2.7
     Re = a_Re * X**b_Re # 2.6
 
     # 2.2
