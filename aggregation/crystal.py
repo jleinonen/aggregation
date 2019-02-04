@@ -257,7 +257,6 @@ class Dendrite(Plate):
         return inside
 
 
-#
 class Rosette(Crystal):
     """6-branch bullet rosette crystal geometry.
 

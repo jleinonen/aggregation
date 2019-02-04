@@ -21,7 +21,6 @@ SOFTWARE.
 import argparse
 import cPickle as pickle
 import gzip
-import json
 import os
 from numpy import random
 import numpy as np
