@@ -150,8 +150,8 @@ class Index3D(object):
             try:
                 ind = self._grid[(x_i,y_i,z_i)].index((x,y,z))
             except ValueError:
-                print (x,y,z)
-                print self._grid[(x_i,y_i,z_i)]
+                print(x,y,z)
+                print(self._grid[(x_i,y_i,z_i)])
                 raise 
             self._grid[(x_i,y_i,z_i)].pop(ind)
             if len(self._grid[(x_i,y_i,z_i)]) == 0:
