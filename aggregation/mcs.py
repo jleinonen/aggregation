@@ -18,7 +18,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from itertools import izip as zip
+try:
+  from itertools import izip as zip
+except:
+  pass
 import numpy as np
 import math
 

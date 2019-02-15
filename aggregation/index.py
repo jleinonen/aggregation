@@ -18,7 +18,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from itertools import izip, chain, product
+from itertools import chain, product
+try:
+  from itertools import izip as zip
+except:
+  pass
 import numpy as np
 
 
@@ -51,7 +55,7 @@ class Index2D(object):
             objects = coordinates
         X = np.array(coordinates)/self._elem_size
         X_i = X.astype(np.int32)
-        for ((x,y),(x_i,y_i),obj) in izip(X,X_i,objects):
+        for ((x,y),(x_i,y_i),obj) in zip(X,X_i,objects):
             try:
                 self._grid[(x_i,y_i)].append(((x,y),obj))
             except KeyError:
@@ -129,7 +133,7 @@ class Index3D(object):
 
         X = np.array(coordinates)/self._elem_size
         X_i = X.astype(np.int32)
-        for ((x,y,z),(x_i,y_i,z_i)) in izip(X,X_i):
+        for ((x,y,z),(x_i,y_i,z_i)) in zip(X,X_i):
             try:
                 self._grid[(x_i,y_i,z_i)].append((x,y,z))
             except KeyError:
@@ -146,7 +150,7 @@ class Index3D(object):
 
         X = np.array(coordinates)/self._elem_size
         X_i = X.astype(np.int32)
-        for ((x,y,z),(x_i,y_i,z_i)) in izip(X,X_i):
+        for ((x,y,z),(x_i,y_i,z_i)) in zip(X,X_i):
             try:
                 ind = self._grid[(x_i,y_i,z_i)].index((x,y,z))
             except ValueError:

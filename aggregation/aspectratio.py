@@ -18,9 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import cPickle as pickle
+try:
+  import cPickle as pickle
+except:
+  import pickle
 import numpy as np
-import crystal, aggregate, generator, rotator
+from . import crystal, aggregate, generator, rotator
 
 def aspect_ratio():
     D_arr = np.exp(np.linspace(np.log(100e-6), np.log(3000e-6), 100))

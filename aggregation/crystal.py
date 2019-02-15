@@ -21,7 +21,7 @@ SOFTWARE.
 import numpy as np
 from numpy import array, sign
 from scipy.optimize import brentq
-import dendrite
+from . import dendrite
 
 
 class Crystal(object):

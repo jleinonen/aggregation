@@ -19,12 +19,15 @@ SOFTWARE.
 """
 
 import argparse
-import cPickle as pickle
+try:
+  import cPickle as pickle
+except:
+  import pickle
 import json
 from numpy import array, random
 import numpy as np
 from scipy import stats
-import aggregate, crystal, rotator, generator
+from . import aggregate, crystal, rotator, generator
 
 
 def generate_aggregate(monomer_generator,N=5,align=True):

@@ -18,10 +18,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import aggregate, crystal, rotator, generator
+from . import aggregate, crystal, rotator, generator
 from numpy import array, random
 import numpy
-import cPickle as pickle
+try:
+  import cPickle as pickle
+except:
+  import pickle
 from scipy import stats
 
 

@@ -19,8 +19,8 @@ SOFTWARE.
 """
 
 import numpy as np
-import crystal
-import rotator
+from . import crystal
+from . import rotator
 
 
 class Generator(object):
