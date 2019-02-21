@@ -20,8 +20,11 @@ SOFTWARE.
 
 import numpy
 from numpy import random, array
-import aggregate, generator, rotator, crystal
-import cPickle as pickle
+from . import aggregate, generator, rotator, crystal
+try:
+  import cPickle as pickle
+except:
+  import pickle
 
 def monodisp_demo(N=5):
    #cry = crystal.Plate(0.3e-3)

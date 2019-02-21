@@ -19,7 +19,7 @@ SOFTWARE.
 """
 
 import numpy as np
-import mcs
+from . import mcs
 
 
 g = 9.81 # gravitational acceleration [m/s^2]

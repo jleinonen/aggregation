@@ -25,8 +25,8 @@ from matplotlib import pyplot, colors
 import numpy as np
 from numpy import random
 from scipy import linalg, stats
-import generator
-from index import Index2D
+from . import generator
+from .index import Index2D
 
 
 if sys.version_info[0] >= 3:

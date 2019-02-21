@@ -18,7 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from riming import *
+from .riming import *
 
 """This is here for backward compatibility and to provide a command
 line interface to rimed aggregate generation.

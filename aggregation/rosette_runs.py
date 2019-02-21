@@ -20,7 +20,7 @@ SOFTWARE.
 
 import gzip
 import numpy as np
-import aggregate, generator, rotator, crystal
+from . import aggregate, generator, rotator, crystal
 
 def generate_rosette(D, min_grid_res=40e-6):
 	grid_res = min(D/20, min_grid_res)

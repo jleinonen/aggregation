@@ -19,13 +19,16 @@ SOFTWARE.
 """
 
 import argparse
-import cPickle as pickle
+try:
+  import cPickle as pickle
+except:
+  import pickle
 import gzip
 import os
 from numpy import random
 import numpy as np
 from scipy import stats
-import aggregate, crystal, rotator, generator, mcs
+from . import aggregate, crystal, rotator, generator, mcs
 
 
 rho_w = 1000.0

@@ -19,8 +19,8 @@ SOFTWARE.
 """
 
 import numpy as np
-import mcs
-from index import Index3D
+from . import mcs
+from .index import Index3D
 
 DEPOSITION_IDENT = -2
 
