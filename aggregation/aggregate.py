@@ -158,6 +158,15 @@ class Aggregate(object):
         """
         proj_grid = self.project_on_dim(dim=dim)
         return proj_grid.sum() * self.grid_res**2
+    
+    def aspect_ratio(self):
+        #calculate aspect ratio from principal_axes
+        pa = self.principal_axes()
+        pa_len = np.sqrt((pa**2).sum(axis=0)) # length of each axis
+        width = np.sqrt(0.5*(pa_len[1]**2 + pa_len[2]**2)) #euclidean length of 2 longer eigenvectors
+        height = pa_len[0]
+
+    return height/width
 
 
     def vertical_projected_area(self):
