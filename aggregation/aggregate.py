@@ -189,6 +189,14 @@ class Aggregate(object):
         y1 = np.arange(len(y_proj))[y_proj][-1]
         return float(y1-y0+1)/float(x1-x0+1)
 
+    def aspect_ratio(self):
+        #calculate aspect ratio from principal_axes
+        pa = self.principal_axes()
+        pa_len = np.sqrt((pa**2).sum(axis=0)) # length of each axis
+        width = np.sqrt(0.5*(pa_len[1]**2 + pa_len[2]**2)) #euclidean length of 2 longer eigenvectors
+        height = pa_len[0]
+
+        return height/width
 
     def principal_axes(self):
         """The principal axes of the aggregate.
