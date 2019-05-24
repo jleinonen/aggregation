@@ -21,7 +21,7 @@ SOFTWARE.
 import numpy as np
 from numpy import array, random, pi
 from scipy.integrate import cumtrapz
-from scipy.interpolate import splrep, splev
+from scipy.interpolate import interp1d
 
 
 class Rotator(object):
@@ -111,11 +111,11 @@ class SamplePDF(object):
     """
 
     def __init__(self, pdf, a, b, num_points=1024):
-        x = np.linspace(a, b, num_points)        
+        x = np.linspace(a, b, num_points)
         y = pdf(x)
         Y = np.hstack((0, cumtrapz(y,x)))
         Y /= Y[-1]
-        self.interp = splrep(Y, x, s=0)
+        self.interp = interp1d(Y, x, kind='linear')
         
     def __call__(self):
         return self.rvs()
@@ -126,7 +126,7 @@ class SamplePDF(object):
         Returns:
             A random sample from the specified PDF.
         """
-        return splev(random.rand(), self.interp, der=0)
+        return float(self.interp(random.rand()))
         
         
 
@@ -145,7 +145,7 @@ class PartialAligningRotator(Rotator):
     def __init__(self, exp_sig_deg=40, random_flip=False):
         self.exp_sig = exp_sig_deg * pi/180
         self.beta_sample = SamplePDF(
-            lambda x: np.sin(x)*np.exp(-x**2/(2*self.exp_sig)), 0, pi)    
+            lambda x: np.sin(x)*np.exp(-0.5*(x/self.exp_sig)**2), 0, pi)
         self.random_flip = random_flip
     
     def rotate(self,X):
@@ -158,7 +158,7 @@ class PartialAligningRotator(Rotator):
         beta = self.beta_sample()
         R = Rotator.rotation_matrix(alpha,beta,0.0)
         X = np.dot(R, X)
-        if self.random_flip and (random.rand() > 0.5):            
+        if self.random_flip and (random.rand() > 0.5):
             X[2,:] = -X[2,:]
             X[1,:] = -X[1,:]
         return X
