@@ -126,7 +126,11 @@ class SamplePDF(object):
         Returns:
             A random sample from the specified PDF.
         """
+<<<<<<< HEAD
         return float(self.interp(random.rand()))
+=======
+        return self.interp(random.rand())
+>>>>>>> 78ffde89b3824c72d4b49e69ae1d86d8abd23efb
         
         
 
