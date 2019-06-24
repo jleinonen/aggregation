@@ -261,6 +261,91 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
     yield agg
 
 
+def gen_polydisperse_monomer(monomers=[], ratios=[]):
+    """ Make a monomer crystal generator that picks from multiple distributions
+        of different monomers, each with its own crystal type and PSD.
+
+    Args:
+        monomers: list of dictionaries. Each dictionary contains the list of
+            arguments of for the single monomer generator gen_monomer for each
+            monomer type
+        ratios: list of floats describing the relative contributions of each
+            monomer type to the overall population. The function first picks the
+            monomer type according to the distribution defined by this list of
+            ratios, than it picks a single monomer according to its own PSD.
+
+    Returns:
+        gen: a generator of monomers that takes into account the presence of
+            multiple distributions of monomers allowing to generate aggregates
+            of monomers of different shapes or coming from bimodal distributions
+            of monomers
+    """
+    
+    if len(monomers) != len(ratios):
+        raise AttributeError('The length of the list of monomers must  match'+ \
+                             'the length of the list of ratios')
+    
+    if sum(ratios) != 1.0:
+        print('Warning! Distro ratios do not sum up to 1.0 ... normalizing')
+
+    def make_cry(mono_type, D):
+        if mono_type == "dendrite":
+            current_dir = os.path.dirname(os.path.realpath(__file__))
+            grid = pickle.load(file(current_dir+"/dendrite_grid.dat"))
+            cry = crystal.Dendrite(D, hex_grid=grid)
+        elif mono_type == "plate":
+            cry = crystal.Plate(D)
+        elif mono_type == "needle":
+            cry = crystal.Needle(D)
+        elif mono_type == "rosette":
+            cry = crystal.Rosette(D)
+        elif mono_type == "bullet":
+            cry = crystal.Bullet(D)
+        elif mono_type == "column":
+            cry = crystal.Column(D)
+        elif mono_type == "spheroid":
+            cry = crystal.Spheroid(D, 1.0)
+        return cry
+
+    rot = rotator.UniformRotator()
+
+    # Generator of generators one type of monomers
+    def gengen(psd="monodisperse", size=1e-3, min_size=0.1e-3, max_size=20e-3,
+               mono_type="dendrite", grid_res=0.02e-3, rimed=False,
+               debug=False):
+        def gen(ident=0):
+            if psd == "monodisperse":
+                D = size
+            elif psd == "exponential":
+                psd_f = stats.expon(scale=size)
+                D = max_size+1
+                while (D < min_size) or (D > max_size):
+                    D = psd_f.rvs()
+            cry = make_cry(mono_type, D)
+            if debug:
+                print(mono_type, D)
+            gen = generator.MonodisperseGenerator(cry, rot, grid_res)
+            if rimed:
+                agg = aggregate.RimedAggregate(gen, ident=ident)
+            else:
+                agg = aggregate.Aggregate(gen, ident=ident)
+            return agg
+        return gen
+
+    # Create a list of monomer generators
+    genlist = [gengen(**i) for i in monomers]
+    
+    # Create a generator that first picks a generator from the previous list
+    # and than uses it
+    def polygen(ident=0):
+        rnd = np.random.uniform()
+        cumsum = np.cumsum(ratios)
+        i = np.arange(len(genlist))[cumsum > rnd][0]
+        return genlist[i](ident)
+
+    return polygen
+
+
 def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3, 
     max_size=20e-3, mono_type="dendrite", grid_res=0.02e-3, 
     rimed=False, debug=False):
