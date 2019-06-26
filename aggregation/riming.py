@@ -288,58 +288,11 @@ def gen_polydisperse_monomer(monomers=[], ratios=[]):
     if sum(ratios) != 1.0:
         print('Warning! Distro ratios do not sum up to 1.0 ... normalizing')
 
-    def make_cry(mono_type, D):
-        if mono_type == "dendrite":
-            current_dir = os.path.dirname(os.path.realpath(__file__))
-            grid = pickle.load(file(current_dir+"/dendrite_grid.dat"))
-            cry = crystal.Dendrite(D, hex_grid=grid)
-        elif mono_type == "plate":
-            cry = crystal.Plate(D)
-        elif mono_type == "needle":
-            cry = crystal.Needle(D)
-        elif mono_type == "rosette":
-            cry = crystal.Rosette(D)
-        elif mono_type == "bullet":
-            cry = crystal.Bullet(D)
-        elif mono_type == "column":
-            cry = crystal.Column(D)
-        elif mono_type == "spheroid":
-            cry = crystal.Spheroid(D, 1.0)
-        return cry
+    genlist = [gen_monomer(**i) for i in monomers]
+    cumsum = np.cumsum(ratios)
 
-    rot = rotator.UniformRotator()
-
-    # Generator of generators one type of monomers
-    def gengen(psd="monodisperse", size=1e-3, min_size=0.1e-3, max_size=20e-3,
-               mono_type="dendrite", grid_res=0.02e-3, rimed=False,
-               debug=False):
-        def gen(ident=0):
-            if psd == "monodisperse":
-                D = size
-            elif psd == "exponential":
-                psd_f = stats.expon(scale=size)
-                D = max_size+1
-                while (D < min_size) or (D > max_size):
-                    D = psd_f.rvs()
-            cry = make_cry(mono_type, D)
-            if debug:
-                print(mono_type, D)
-            gen = generator.MonodisperseGenerator(cry, rot, grid_res)
-            if rimed:
-                agg = aggregate.RimedAggregate(gen, ident=ident)
-            else:
-                agg = aggregate.Aggregate(gen, ident=ident)
-            return agg
-        return gen
-
-    # Create a list of monomer generators
-    genlist = [gengen(**i) for i in monomers]
-    
-    # Create a generator that first picks a generator from the previous list
-    # and than uses it
     def polygen(ident=0):
         rnd = np.random.uniform()
-        cumsum = np.cumsum(ratios)
         i = np.arange(len(genlist))[cumsum > rnd][0]
         return genlist[i](ident)
 
@@ -399,7 +352,7 @@ def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3,
         
         cry = make_cry(D)
         if debug:
-            print(D)
+            print(D, mono_type)
         
         gen = generator.MonodisperseGenerator(cry, rot, grid_res)
         if rimed:
