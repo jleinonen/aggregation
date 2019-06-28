@@ -261,6 +261,44 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
     yield agg
 
 
+def gen_polydisperse_monomer(monomers=[], ratios=[]):
+    """ Make a monomer crystal generator that picks from multiple distributions
+        of different monomers, each with its own crystal type and PSD.
+
+    Args:
+        monomers: list of dictionaries. Each dictionary contains the list of
+            arguments of for the single monomer generator gen_monomer for each
+            monomer type
+        ratios: list of floats describing the relative contributions of each
+            monomer type to the overall population. The function first picks the
+            monomer type according to the distribution defined by this list of
+            ratios, than it picks a single monomer according to its own PSD.
+
+    Returns:
+        gen: a generator of monomers that takes into account the presence of
+            multiple distributions of monomers allowing to generate aggregates
+            of monomers of different shapes or coming from bimodal distributions
+            of monomers
+    """
+    
+    if len(monomers) != len(ratios):
+        raise AttributeError('The length of the list of monomers must  match'+ \
+                             'the length of the list of ratios')
+    
+    if sum(ratios) != 1.0:
+        print('Warning! Distro ratios do not sum up to 1.0 ... normalizing')
+
+    genlist = [gen_monomer(**i) for i in monomers]
+    cumsum = np.cumsum(ratios)
+
+    def polygen(ident=0):
+        rnd = np.random.uniform()
+        i = np.arange(len(genlist))[cumsum > rnd][0]
+        return genlist[i](ident)
+
+    return polygen
+
+
 def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3, 
     max_size=20e-3, mono_type="dendrite", grid_res=0.02e-3, 
     rimed=False, debug=False):
@@ -314,7 +352,7 @@ def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3,
         
         cry = make_cry(D)
         if debug:
-            print(D)
+            print(D, mono_type)
         
         gen = generator.MonodisperseGenerator(cry, rot, grid_res)
         if rimed:
