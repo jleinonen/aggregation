@@ -25,10 +25,17 @@ except:
   import pickle
 import gzip
 import os
+import sys
+
 from numpy import random
 import numpy as np
 from scipy import stats
+
 from . import aggregate, crystal, rotator, generator, mcs
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
 
 
 rho_w = 1000.0
@@ -226,7 +233,8 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
                 agg_top = agg[i] if (m_r[i] > m_r[j]) else agg[j]
                 agg_btm = agg[i] if (m_r[i] <= m_r[j]) else agg[j]
                 agg_btm.rotate(uniform_rot)
-                collision = agg_top.add_particle(particle=agg_btm.X,ident=agg_btm.ident,
+                collision = agg_top.add_particle(
+                    particle=agg_btm.X,ident=agg_btm.ident,
                     required=True,pen_depth=80e-6)
                 if collision:
                     if align:
@@ -248,8 +256,9 @@ def generate_rimed_aggregate_iter(monomer_generator, N=5, align=True,
 
     if (riming_mode == "subsequent") or (N==1):
         for a in generate_rime(agg[0], align_rot if align else uniform_rot, 
-            riming_lwp, riming_eff=riming_eff, pen_depth=rime_pen_depth, 
-            lwp_div=lwp_div, iter=True, compact_dist=compact_dist):
+            float(riming_lwp), riming_eff=riming_eff, 
+            pen_depth=rime_pen_depth, lwp_div=lwp_div, iter=True,
+            compact_dist=compact_dist):
 
             yield [a]
 
@@ -323,7 +332,9 @@ def gen_monomer(psd="monodisperse", size=1e-3, min_size=0.1e-3,
     def make_cry(D):
         if mono_type=="dendrite":
             current_dir = os.path.dirname(os.path.realpath(__file__))
-            grid = pickle.load(file(current_dir+"/dendrite_grid.dat"))
+            with open(current_dir+"/dendrite_grid.dat", 'rb') as f:
+                kwargs = {"encoding": "latin1"} if sys.version_info[0] >= 3 else {}
+                grid = pickle.load(f, **kwargs)
             cry = crystal.Dendrite(D, hex_grid=grid)
         elif mono_type=="plate":
             cry = crystal.Plate(D)            

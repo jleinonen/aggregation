@@ -18,14 +18,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from . import aggregate, crystal, rotator, generator
-from numpy import array, random
-import numpy
+import os
+import sys
 try:
   import cPickle as pickle
 except:
   import pickle
+
+from numpy import array, random
+import numpy
 from scipy import stats
+
+from . import aggregate, crystal, rotator, generator
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
 
 
 def monodisp_dendrite(N=5,grid=None,align=True):
@@ -73,27 +81,35 @@ def monodisp_dendrite(N=5,grid=None,align=True):
    return agg[0]
 
 
+def load_dendrite_grid():
+   current_dir = os.path.dirname(os.path.realpath(__file__))
+   with open(current_dir+"/dendrite_grid.dat", 'rb') as f:
+       kwargs = {"encoding": "latin1"} if sys.version_info[0] >= 3 else {}
+       grid = pickle.load(f, **kwargs)
+   return grid
+
+
 def gen_monodisp(N_range=(1,101)):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(*N_range):
       agg = monodisp_dendrite(N=N,grid=grid)      
       numpy.savetxt("monodisp/monod_"+str(N)+".dat",agg.grid(),fmt="%d")
       
 def gen_monodisp_nonaligned(N_range=(1,101)):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(*N_range):
       agg = monodisp_dendrite(N=N,grid=grid,align=False)      
       numpy.savetxt("monodisp/monod_"+str(N)+".dat",agg.grid(),fmt="%d")
       
 def gen_monodisp_Nmon(N=10,N0=0,Nmon=50):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(N0,N):
       agg = monodisp_dendrite(N=Nmon,grid=grid,align=False)      
       numpy.savetxt("monodisp_" + str(Nmon) + "/monod_"+str(N)+".dat",agg.grid(),fmt="%d")
       
       
 def gen_monodisp_single():
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(300):
       agg = monodisp_dendrite(N=1,grid=grid,align=False)      
       numpy.savetxt("monodisp_single/monod_"+str(N)+".dat",agg.grid(),fmt="%d")  
@@ -153,25 +169,25 @@ def polydisp_dendrite(N=5,grid=None,align=True):
 
 
 def gen_polydisp(N_range=(1,101)):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(*N_range):
       agg = polydisp_dendrite(N=N,grid=grid)      
       numpy.savetxt("polydisp/polyd_"+str(N)+".dat",agg.grid(),fmt="%d")
       
 def gen_polydisp_nonaligned(N_range=(1,101)):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(*N_range):
       agg = polydisp_dendrite(N=N,grid=grid,align=False)      
       numpy.savetxt("polydisp_nonalign/polyd_"+str(N)+".dat",agg.grid(),fmt="%d")
       
 def gen_polydisp_single():
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(300):
       agg = polydisp_dendrite(N=1,grid=grid,align=False)      
       numpy.savetxt("polydisp_single/polyd_"+str(N)+".dat",agg.grid(),fmt="%d")        
 
 def gen_polydisp_Nmon(N=10,N0=0,Nmon=50):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(N0,N):
       agg = polydisp_dendrite(N=Nmon,grid=grid,align=False)      
       numpy.savetxt("polydisp_" + str(Nmon) + "/polyd_"+str(N)+".dat",agg.grid(),fmt="%d")
@@ -199,13 +215,13 @@ def monodisp_pseudo(N=5,grid=None,sig=1.0):
       
       
 def gen_monodisp_pseudo(N_range=(1,101)):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(*N_range):
       agg = monodisp_pseudo(N=N,grid=grid)      
       numpy.savetxt("monodisp_pseudo/monod_"+str(N)+".dat",agg.grid(),fmt="%d")
       
 def gen_monodisp_pseudo_Nmon(N=10,N0=0,Nmon=50):
-   grid = pickle.load(file("dendrite_grid.dat"))
+   grid = load_dendrite_grid()
    for N in xrange(N0,N):
       agg = monodisp_pseudo(N=Nmon,grid=grid,sig=0.012)      
       numpy.savetxt("monodisp_pseudo_" + str(Nmon) + "/monod_"+str(N)+".dat",agg.grid(),fmt="%d")

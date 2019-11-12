@@ -24,10 +24,18 @@ try:
 except:
   import pickle
 import json
+import os
+import sys
+
 from numpy import array, random
 import numpy as np
 from scipy import stats
+
 from . import aggregate, crystal, rotator, generator
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
 
 
 def generate_aggregate(monomer_generator,N=5,align=True):
@@ -79,7 +87,10 @@ def gen_monomer(psd="monodisperse", size=1.0, min_size=1e-3, max_size=10,
         
     def make_cry(D):
         if mono_type=="dendrite":
-            grid = pickle.load(file("dendrite_grid.dat"))
+           current_dir = os.path.dirname(os.path.realpath(__file__))
+           with open(current_dir+"/dendrite_grid.dat", 'rb') as f:
+               kwargs = {"encoding": "latin1"} if sys.version_info[0] >= 3 else {}
+               grid = pickle.load(f, **kwargs)
             cry = crystal.Dendrite(D, hex_grid=grid)
         elif mono_type=="plate":
             cry = crystal.Plate(D)            

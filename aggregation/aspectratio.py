@@ -18,17 +18,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import os
 try:
   import cPickle as pickle
 except:
   import pickle
+import sys
+
 import numpy as np
 from . import crystal, aggregate, generator, rotator
 
+
 def aspect_ratio():
     D_arr = np.exp(np.linspace(np.log(100e-6), np.log(3000e-6), 100))
-    with open("../aggregation/dendrite_grid.dat") as f: 
-        grid = pickle.load(f)
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(current_dir+"/dendrite_grid.dat", 'rb') as f:
+        kwargs = {"encoding": "latin1"} if sys.version_info[0] >= 3 else {}
+        grid = pickle.load(f, **kwargs)
     rot = rotator.UniformRotator()
     grid_res = 40.0e-6
 

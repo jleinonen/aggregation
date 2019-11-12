@@ -25,7 +25,7 @@ from matplotlib import pyplot, colors
 import numpy as np
 from numpy import random
 from scipy import linalg, stats
-from . import generator
+from . import generator, rotator
 from .index import Index2D
 
 
@@ -100,12 +100,15 @@ class Aggregate(object):
             self.extent = [[0.,0.],[0.,0.],[0.,0.]]
 
 
-    def project_on_dim(self, dim=2):
+    def project_on_dim(self, dim=2, direction=None):
         """Make a 2D projection of the aggregate.
 
         Args:
             dim: The dimension along which the projection is made 
                 (0<=dim<=2, default 2)
+            direction: a 2-tuple of Euler angles (alpha, beta) 
+                in radians, giving the viewpoint direction (default None,
+                if not None then dim is ignored)
 
         Returns:
             2D array with the projection along the given dimension.
@@ -121,30 +124,42 @@ class Aggregate(object):
             If dim==2, the two dimensions of the returned array are the
             dimensions (x,y) of the aggregate (in that order).
         """
+        if direction is not None:
+            dim = 0
+            (alpha, beta) = direction
+            R = rotator.Rotator.rotation_matrix(alpha, beta, 0)
+            self.X = self.X.dot(R)
+            self.update_extent()
 
-        ext = self.extent
-        if dim == 0:
-            xp = (self.X[:,1]-ext[1][0]) / self.grid_res
-            yp = (self.X[:,2]-ext[2][0]) / self.grid_res
-        elif dim == 1:
-            xp = (self.X[:,0]-ext[0][0]) / self.grid_res
-            yp = (self.X[:,2]-ext[2][0]) / self.grid_res
-        elif dim == 2:
-            xp = (self.X[:,0]-ext[0][0]) / self.grid_res
-            yp = (self.X[:,1]-ext[1][0]) / self.grid_res
-        else:
-            raise AttributeError("Argument dim must be 0<=dim<=2.")
+        try:
+            ext = self.extent
+            if dim == 0:
+                xp = (self.X[:,1]-ext[1][0]) / self.grid_res
+                yp = (self.X[:,2]-ext[2][0]) / self.grid_res
+            elif dim == 1:
+                xp = (self.X[:,0]-ext[0][0]) / self.grid_res
+                yp = (self.X[:,2]-ext[2][0]) / self.grid_res
+            elif dim == 2:
+                xp = (self.X[:,0]-ext[0][0]) / self.grid_res
+                yp = (self.X[:,1]-ext[1][0]) / self.grid_res
+            else:
+                raise AttributeError("Argument dim must be 0<=dim<=2.")
 
-        x_max = int(round(xp.max()))
-        y_max = int(round(yp.max()))
+            x_max = int(round(xp.max()))
+            y_max = int(round(yp.max()))
 
-        proj_grid = np.zeros((x_max+1,y_max+1), dtype=np.uint8)
-        proj_grid[xp.round().astype(int), yp.round().astype(int)] = 1
+            proj_grid = np.zeros((x_max+1,y_max+1), dtype=np.uint8)
+            proj_grid[xp.round().astype(int), yp.round().astype(int)] = 1
+
+        finally:
+            if direction is not None:
+                self.X = self.X.dot(R.T)
+                self.update_extent()
 
         return proj_grid
 
 
-    def projected_area(self, dim=2):
+    def projected_area(self, dim=2, direction=None):
         """Projected area of the aggregate.
 
         Uses the project_on_dim function to compute the projection.
@@ -152,11 +167,14 @@ class Aggregate(object):
         Args:
             dim: The dimension along which the projection is made 
                 (0<=dim<=2, default 2)
+            direction: a 2-tuple of Euler angles (alpha, beta) 
+                in radians, giving the viewpoint direction (default None,
+                if not None then dim is ignored)
 
         Returns:
             The projected area along the given dimension.
         """
-        proj_grid = self.project_on_dim(dim=dim)
+        proj_grid = self.project_on_dim(dim=dim, direction=direction)
         return proj_grid.sum() * self.grid_res**2
 
 
@@ -165,7 +183,7 @@ class Aggregate(object):
         return self.projected_area(dim=2)
 
 
-    def projected_aspect_ratio(self, dim=2):
+    def projected_aspect_ratio(self, dim=2, direction=None):
         """The projected aspect ratio of the aggregate.
 
         Uses the project_on_dim function to compute the projection.
@@ -173,13 +191,16 @@ class Aggregate(object):
         Args:
             dim: The dimension along which the projection is made 
                 (0<=dim<=2, default 2)
+            direction: a 2-tuple of Euler angles (alpha, beta) 
+                in radians, giving the viewpoint direction (default None,
+                if not None then dim is ignored)
 
         Returns:
             The aspect ratio (defined as the ratio of the maximum extents
             of the projected dimensions) along the given dimension.
         """
 
-        proj_grid = self.project_on_dim(dim=dim)
+        proj_grid = self.project_on_dim(dim=dim, direction=direction)
 
         x_proj = proj_grid.any(axis=0)
         y_proj = proj_grid.any(axis=1)

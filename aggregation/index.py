@@ -23,7 +23,13 @@ try:
   from itertools import izip as zip
 except:
   pass
+import sys
+
 import numpy as np
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
 
 
 class Index2D(object):

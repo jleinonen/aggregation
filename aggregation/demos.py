@@ -18,13 +18,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import numpy
-from numpy import random, array
-from . import aggregate, generator, rotator, crystal
+import sys
 try:
   import cPickle as pickle
 except:
   import pickle
+
+import numpy
+from numpy import random, array
+
+from . import aggregate, generator, rotator, crystal
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
+
 
 def monodisp_demo(N=5):
    #cry = crystal.Plate(0.3e-3)

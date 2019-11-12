@@ -18,9 +18,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import sys
+
 import numpy as np
+
 from . import mcs
 from .index import Index3D
+
+
+if sys.version_info[0] >= 3:
+    xrange = range
+
 
 DEPOSITION_IDENT = -2
 
