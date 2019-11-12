@@ -137,8 +137,8 @@ class Index3D(object):
                 be indexed.
         """
 
-        X = np.array(coordinates)/self._elem_size
-        X_i = X.astype(np.int32)
+        X = np.array(coordinates)
+        X_i = (X/self._elem_size).astype(np.int32)
         for ((x,y,z),(x_i,y_i,z_i)) in zip(X,X_i):
             try:
                 self._grid[(x_i,y_i,z_i)].append((x,y,z))
@@ -154,8 +154,8 @@ class Index3D(object):
                 removed from the index.
         """
 
-        X = np.array(coordinates)/self._elem_size
-        X_i = X.astype(np.int32)
+        X = np.array(coordinates)
+        X_i = (X/self._elem_size).astype(np.int32)
         for ((x,y,z),(x_i,y_i,z_i)) in zip(X,X_i):
             try:
                 ind = self._grid[(x_i,y_i,z_i)].index((x,y,z))
@@ -169,11 +169,7 @@ class Index3D(object):
 
     
     def _items_in_cell(self, x_i, y_i, z_i):
-        try:
-            return [(x*self._elem_size,y*self._elem_size,z*self._elem_size) 
-                for (x,y,z) in self._grid[(x_i,y_i,z_i)]]
-        except KeyError:
-            return []
+        return self._grid.get((x_i,y_i,z_i), [])
 
         
     def items_near(self, p, search_rad=1):
@@ -190,7 +186,7 @@ class Index3D(object):
             An iterator containing the indexed items near p.
         """
         
-        p = np.array(p)/self._elem_size        
+        p = np.array(p,copy=False)/self._elem_size        
         search_rad = search_rad/self._elem_size
         (px, py, pz) = p        
     
@@ -202,6 +198,6 @@ class Index3D(object):
         cell_z = xrange(int(pz-search_rad), int(pz+search_rad)+1)
         
         for (x_i, y_i, z_i) in product(cell_x, cell_y, cell_z):   
-            items.append(item for item in self._items_in_cell(x_i, y_i, z_i))
-                
+            items.append(self._items_in_cell(x_i, y_i, z_i))
+        
         return chain(*items)

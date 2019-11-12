@@ -26,7 +26,7 @@ import numpy as np
 from numpy import random
 from scipy import linalg, stats
 from . import generator, rotator
-from .index import Index2D
+from .index import Index2D, Index3D
 
 
 if sys.version_info[0] >= 3:
@@ -639,6 +639,22 @@ class RimedAggregate(Aggregate):
                     np.array([x,y]))**2).sum(1) < grid_res_sqr*dist_mul**2
                 return self.X[X_filter,:]
 
+        if compact_dist > 0:
+            if use_indexing:
+                elem_index_3d = Index3D(elem_size=grid_res)            
+                elem_index_3d.insert(self.X)
+                def find_overlapping_3d(x,y,z,dist_mul=1):
+                    p_near = np.array(list(elem_index_3d.items_near((x,y,z), grid_res*dist_mul)))
+                    if not p_near.shape[0]:
+                        return p_near
+                    p_filter = ((p_near-[x,y,z])**2).sum(1) < grid_res_sqr*dist_mul**2
+                    return p_near[p_filter,:]
+            else:
+                def find_overlapping_3d(x,y,z,dist_mul=1):
+                    X_filter = ((self.X - 
+                        np.array([x,y,z]))**2).sum(1) < grid_res_sqr*dist_mul**2
+                    return self.X[X_filter,:]
+
         added_particles = np.empty((N, 3))
 
         for particle_num in xrange(N):
@@ -695,13 +711,14 @@ class RimedAggregate(Aggregate):
 
                         # run the compacting first
                         if compact_dist > 0:
-                            X = np.array([xs, ys, zc])
                             # locate nearby particles to use for the compacting
-                            X_near = find_overlapping(xs, ys, dist_mul=2)
-                            r_sqr = ((X_near-X)**2).sum(axis=1)
-                            X_near = X_near[r_sqr<(2*self.grid_res)**2,:]
-                            (xs, ys, zc) = self.compact_rime(X, X_near, 
-                                max_dist=compact_dist)
+                            X_near = find_overlapping_3d(xs, ys, zc, dist_mul=2)
+                            if X_near.size > 0:
+                                X = np.array([xs, ys, zc])
+                                r_sqr = ((X_near-X)**2).sum(axis=1)
+                                X_near = X_near[r_sqr<(2*self.grid_res)**2,:]
+                                (xs, ys, zc) = self.compact_rime(X, X_near, 
+                                    max_dist=compact_dist)
 
                         added_particles[particle_num,:] = [xs, ys, zc]
                         site_found = True
@@ -758,8 +775,6 @@ class RimedAggregate(Aggregate):
                 break
             if ((X-X_last)**2).sum() < min_move_sqr:
                 break
-
-
 
         return X
 
