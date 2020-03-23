@@ -58,6 +58,35 @@ def min_z_separation(elems,ref_elem,grid_res_sqr):
     z_sep[~match_possible] = np.inf            
     return z_sep.min()
 
+def get_proj_area_from_alphashape(proj_grid, alpha=0.4):
+    """
+    Calculate the projected area from an alpha shape, which is based on the projected grid
+
+    Args:
+        proj_grid: 2d-projected grid
+        alpha: alpha parameter: see https://pypi.org/project/alphashape/
+    Returns:
+        alpha shape: see https://pypi.org/project/alphashape/e
+
+    """
+    import alphashape
+    from shapely.geometry import Point, Polygon
+    
+    coord = np.where(proj_grid>0) #get coordinates of ice pixel
+ 
+    alpha_shape = alphashape.alphashape(np.column_stack((coord[0],coord[1])),alpha) #get alpha shape
+
+    if proj_grid.shape[0]*proj_grid.shape[1]>10000:
+        #many pixels: get area from alpha-shape polygon (computational cheaper than counting pixel and relatively accurate for large aggregates<5% deviation)
+        area = alpha_shape.area 
+    else: #few pixels: pixel-wise evaluation of area
+        area=0
+        for i in range(0,proj_grid.shape[0]):
+            for j in range(0,proj_grid.shape[1]):
+                if Point(i,j).intersects(alpha_shape):
+                    area+=1
+
+    return area
 
 class Aggregate(object):
     """A volume-element aggregate model.
@@ -159,7 +188,7 @@ class Aggregate(object):
         return proj_grid
 
 
-    def projected_area(self, dim=2, direction=None):
+    def projected_area(self, dim=2, direction=None, method="default"):
         """Projected area of the aggregate.
 
         Uses the project_on_dim function to compute the projection.
@@ -170,12 +199,26 @@ class Aggregate(object):
             direction: a 2-tuple of Euler angles (alpha, beta) 
                 in radians, giving the viewpoint direction (default None,
                 if not None then dim is ignored)
+            method: default: count pixels in projection
+                    alphashape: approximate projection by an alpha-shape (this eliminates holes in the projection and smoothes the boundaries)
 
         Returns:
             The projected area along the given dimension.
         """
-        proj_grid = self.project_on_dim(dim=dim, direction=direction)
-        return proj_grid.sum() * self.grid_res**2
+        
+        if method=="default":
+            proj_grid = self.project_on_dim(dim=dim, direction=direction)
+            return proj_grid.sum() * self.grid_res**2
+        elif method=="alphashape":
+
+            proj_grid = self.project_on_dim(dim=dim)
+            proj_grid_alpha_sum = get_proj_area_from_alphashape(proj_grid,alpha=0.5) 
+            return proj_grid_alpha_sum * self.grid_res**2
+        else:
+            print "method \"" + method +"\" not implemented in projected area; use default()"
+            proj_grid = self.project_on_dim(dim=dim, direction=direction)
+            return proj_grid.sum() * self.grid_res**2
+            
 
 
     def vertical_projected_area(self):
