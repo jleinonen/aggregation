@@ -70,9 +70,7 @@ def generate_aggregate(monomer_generator,N=5,align=True):
                         agg_top.rotate(align_rot)
                     else:
                         agg_top.rotate(uniform_rot)
-                    agg.pop(i if (m_r[i] <= m_r[j]) else j)
-        
-            
+                    agg.pop(i if (m_r[i] <= m_r[j]) else j)            
 
     if align:
         agg[0].align()
