@@ -89,7 +89,7 @@ def gen_monomer(psd="monodisperse", size=1.0, min_size=1e-3, max_size=10,
            with open(current_dir+"/dendrite_grid.dat", 'rb') as f:
                kwargs = {"encoding": "latin1"} if sys.version_info[0] >= 3 else {}
                grid = pickle.load(f, **kwargs)
-            cry = crystal.Dendrite(D, hex_grid=grid)
+           cry = crystal.Dendrite(D, hex_grid=grid)
         elif mono_type=="plate":
             cry = crystal.Plate(D)            
         elif mono_type=="needle":

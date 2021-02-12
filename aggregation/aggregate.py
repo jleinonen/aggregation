@@ -215,7 +215,7 @@ class Aggregate(object):
             proj_grid_alpha_sum = get_proj_area_from_alphashape(proj_grid,alpha=0.5) 
             return proj_grid_alpha_sum * self.grid_res**2
         else:
-            print "method \"" + method +"\" not implemented in projected area; use default()"
+            print("method \"" + method +"\" not implemented in projected area; use default()")
             proj_grid = self.project_on_dim(dim=dim, direction=direction)
             return proj_grid.sum() * self.grid_res**2
             
